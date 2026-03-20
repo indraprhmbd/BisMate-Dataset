@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Dataset {
+  id          String   @id @default(uuid())
+  taskType    String   @map("task_type")
+  system      String
+  instruction String
+  input       String
+  output      String
+  hash        String   @unique
+  batchId     String   @map("batch_id")
+  contributor String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([taskType])
+  @@map("datasets")
+}
