@@ -1,0 +1,47 @@
+Sekarang konversi setiap report dari output di atas menjadi JSON BMC.
+
+Buat 5 objek JSON, satu untuk setiap bisnis dari output sebelumnya.
+Output berupa JSON array berisi 5 objek.
+
+═══════════════════════════════════
+STRUKTUR OBJEK
+═══════════════════════════════════
+
+{
+  "tipe": "JSON",
+  "system": "Kamu adalah BisMate. Tugasmu mengkonversi report analisis bisnis yang sudah ada menjadi skema JSON Business Model Canvas. Ekstrak hanya poin-poin utama dari setiap blok tanpa penjelasan. Output harus berupa JSON valid dengan 9 blok BMC.",
+  "instruction": "Konversi report analisis bisnis berikut menjadi skema JSON Business Model Canvas. Ambil hanya poin-poin utamanya, tanpa penjelasan.",
+  "input": "[REPORT LENGKAP DARI TURN TERAKHIR BISNIS INI]",
+  "output": {
+    "nama_bisnis": "[nama bisnis dari report]",
+    "customer_segments": ["[poin 1]", "[poin 2]", "[poin 3]"],
+    "value_propositions": ["[poin 1]", "[poin 2]", "[poin 3]"],
+    "channels": ["[poin 1]", "[poin 2]", "[poin 3]"],
+    "customer_relationships": ["[poin 1]", "[poin 2]", "[poin 3]"],
+    "revenue_streams": ["[poin 1]", "[poin 2]", "[poin 3]"],
+    "key_resources": ["[poin 1]", "[poin 2]", "[poin 3]"],
+    "key_activities": ["[poin 1]", "[poin 2]", "[poin 3]"],
+    "key_partnerships": ["[poin 1]", "[poin 2]", "[poin 3]"],
+    "cost_structure": ["[poin 1]", "[poin 2]", "[poin 3]"]
+  }
+}
+
+═══════════════════════════════════
+KETENTUAN OUTPUT
+═══════════════════════════════════
+
+- Field "input" diisi dengan report lengkap dari turn terakhir CONV pasangannya
+- Setiap blok berupa array of strings
+- Setiap array berisi 2-4 item
+- Setiap item adalah poin utama yang diekstrak langsung dari report,
+  maksimal 1 kalimat, tanpa penjelasan tambahan
+- Tidak ada emoji
+- JSON harus valid dan bisa di-parse tanpa error
+
+═══════════════════════════════════
+FORMAT OUTPUT AKHIR
+═══════════════════════════════════
+
+JSON array berisi 5 objek.
+Tidak ada teks di luar JSON array.
+Seluruh JSON valid dan bisa di-parse tanpa error.

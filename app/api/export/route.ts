@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const task_type = searchParams.get("task");
 
-    if (!task_type || (task_type !== "marketing" && task_type !== "regulasi" && task_type !== "chatbot")) {
+    if (!task_type || !["marketing", "regulasi", "bmc", "convertation"].includes(task_type)) {
       return new Response("Invalid task type", { status: 400 });
     }
 

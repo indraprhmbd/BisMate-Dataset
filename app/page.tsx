@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-type TaskType = "marketing" | "regulasi";
+type TaskType = "marketing" | "regulasi" | "bmc" | "convertation";
 
 interface LineValidation {
   line: number;
@@ -272,6 +272,12 @@ export default function HomePage() {
               {task === "marketing" && (
                 <li style={{ color: "var(--text-primary)" }}>Untuk Marketing: output WAJIB mengandung <strong>"Strategi"</strong> dan <strong>"Content Calendar"</strong></li>
               )}
+              {task === "bmc" && (
+                <li style={{ color: "var(--text-primary)" }}>Untuk BMC: WAJIB ada field <strong>"tipe"</strong> bernilai <strong>"CONV"</strong> atau <strong>"JSON"</strong>. Tipe JSON: output berupa objek dengan 9 blok BMC.</li>
+              )}
+              {task === "convertation" && (
+                <li style={{ color: "var(--text-primary)" }}>Untuk Convertation: WAJIB ada field <strong>"tipe"</strong>. Tipe CONV: field <strong>"conversations"</strong> berupa array role/content (min. 5 turn). Tipe JSON: output berupa objek dengan 9 blok BMC.</li>
+              )}
             </ul>
           </div>
 
@@ -288,6 +294,8 @@ export default function HomePage() {
               >
                 <option value="marketing">Marketing</option>
                 <option value="regulasi">Regulasi</option>
+                <option value="bmc">BMC (Business Model Canvas)</option>
+                <option value="convertation">Convertation (CONV + JSON)</option>
               </select>
             </div>
 
@@ -409,6 +417,8 @@ export default function HomePage() {
               >
                 <option value="marketing">Marketing</option>
                 <option value="regulasi">Regulasi</option>
+                <option value="bmc">BMC (Business Model Canvas)</option>
+                <option value="convertation">Convertation (CONV + JSON)</option>
               </select>
             </div>
 
@@ -425,7 +435,7 @@ export default function HomePage() {
                 Querying the database may consume bandwidth for large datasets.
               </p>
               <button className="btn btn-primary" onClick={() => setIsExploded(true)}>
-                Load {exportTask === "marketing" ? "Marketing" : "Regulasi"} Table
+                Load {exportTask === "marketing" ? "Marketing" : exportTask === "regulasi" ? "Regulasi" : exportTask === "bmc" ? "BMC" : "Convertation"} Table
               </button>
             </div>
           ) : (
@@ -466,6 +476,7 @@ export default function HomePage() {
                           onChange={handleSelectAll}
                         />
                       </th>
+                      {(exportTask === "bmc" || exportTask === "convertation") && <th style={{ padding: "8px", borderRight: "1px solid var(--border)" }}>Tipe</th>}
                       <th style={{ padding: "8px", borderRight: "1px solid var(--border)" }}>Instruction</th>
                       <th style={{ padding: "8px", borderRight: "1px solid var(--border)" }}>Input</th>
                       <th style={{ padding: "8px" }}>Output</th>
@@ -480,12 +491,17 @@ export default function HomePage() {
                       exportData.map(item => (
                         <tr key={item.id} style={{ borderBottom: "1px solid var(--border)" }}>
                           <td style={{ padding: "8px", textAlign: "center", verticalAlign: "top" }}>
-                            <input 
+                            <input
                               type="checkbox"
                               checked={selectedIds.has(item.id)}
                               onChange={() => handleSelectRow(item.id)}
                             />
                           </td>
+                          {(exportTask === "bmc" || exportTask === "convertation") && (
+                            <td style={{ padding: "8px", borderRight: "1px solid var(--border)", verticalAlign: "top", whiteSpace: "nowrap" }}>
+                              {item.tipe || "-"}
+                            </td>
+                          )}
                           <td style={{ padding: "8px", borderRight: "1px solid var(--border)", verticalAlign: "top" }}>
                             <div style={{ maxHeight: "100px", overflowY: "auto" }}>{item.instruction}</div>
                           </td>

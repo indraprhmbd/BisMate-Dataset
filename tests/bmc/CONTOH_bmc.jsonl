@@ -1,0 +1,54 @@
+{
+  "tipe": "JSON",
+  "system": "Kamu adalah BisMate. Tugasmu mengkonversi report analisis bisnis yang sudah ada menjadi skema JSON Business Model Canvas. Ekstrak hanya poin-poin utama dari setiap blok tanpa penjelasan. Output harus berupa JSON valid dengan 9 blok BMC.",
+  "instruction": "Konversi report analisis bisnis berikut menjadi skema JSON Business Model Canvas. Ambil hanya poin-poin utamanya, tanpa penjelasan.",
+  "input": "[ISI REPORT LENGKAP DARI TIPE CONV — paste seluruh output turn terakhir Tipe CONV]",
+  "output": {
+    "nama_bisnis": "Katering Sehat Anak Kos Jogja",
+    "customer_segments": [
+      "Mahasiswa usia 18-25 tahun di sekitar kampus UGM Yogyakarta",
+      "Mahasiswa yang sedang program diet atau punya kondisi kesehatan tertentu"
+    ],
+    "value_propositions": [
+      "Makanan sehat siap makan dengan harga terjangkau 15-20 ribu per porsi",
+      "Sistem langganan mingguan yang praktis tanpa perlu order setiap hari",
+      "Pengiriman langsung ke kos di jam makan siang"
+    ],
+    "channels": [
+      "WhatsApp Business untuk order dan customer service",
+      "Instagram untuk konten menu harian dan promosi",
+      "Word-of-mouth melalui grup angkatan dan komunitas kos"
+    ],
+    "customer_relationships": [
+      "Paket langganan 5 hari kerja dengan menu berbeda setiap harinya",
+      "Grup WhatsApp pelanggan untuk update menu dan feedback",
+      "Sistem pre-order mingguan untuk kepastian produksi"
+    ],
+    "revenue_streams": [
+      "Paket langganan mingguan 5 hari kerja",
+      "Paket harian untuk non-langganan dengan harga lebih tinggi",
+      "Pesanan grup untuk acara mahasiswa"
+    ],
+    "key_resources": [
+      "Dapur produksi rumahan bersertifikat PIRT",
+      "Supplier bahan makanan segar dan terpercaya",
+      "Kemasan food-grade yang aman dan branded"
+    ],
+    "key_activities": [
+      "Memasak dengan standar kebersihan dan nilai gizi terjaga setiap hari",
+      "Mengelola order dan jadwal pengiriman harian",
+      "Membuat konten menu dan promosi di media sosial"
+    ],
+    "key_partnerships": [
+      "Supplier sayur dan lauk segar di pasar lokal Yogyakarta",
+      "Mitra ojol atau kurir lokal untuk pengiriman",
+      "Komunitas kos dan himpunan mahasiswa sekitar UGM"
+    ],
+    "cost_structure": [
+      "Bahan baku makanan sekitar 50-60 persen dari harga jual",
+      "Kemasan food-grade per porsi",
+      "Biaya pengiriman atau komisi mitra ojol",
+      "Biaya pengurusan izin PIRT sebagai investasi awal satu kali"
+    ]
+  }
+}
