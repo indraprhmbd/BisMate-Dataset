@@ -14,6 +14,7 @@ model Dataset {
   instruction String
   input       String
   output      String
+  tipe        String?
   hash        String   @unique
   batchId     String   @map("batch_id")
   contributor String?
