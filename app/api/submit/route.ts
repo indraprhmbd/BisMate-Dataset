@@ -27,8 +27,8 @@ export async function POST(req: NextRequest) {
     const insertData = validationResult.lines.map(row => {
       const parsed = row.parsed!;
 
-      // convertation CONV type: flatten conversations into output field
-      if (task_type === "convertation" && parsed.tipe === "CONV") {
+      // CONV types (bmc CONV, convertation CONV): flatten conversations into output field
+      if (parsed.tipe === "CONV") {
         const conversations = parsed.conversations!;
         const firstUserMsg = conversations.find(c => c.role === "user")?.content ?? "";
         const conversationsJson = JSON.stringify(conversations);
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
         };
       }
 
-      // All other types (marketing, regulasi, bmc, convertation JSON)
+      // All other types (marketing, regulasi, bmc JSON, convertation JSON)
       const output = typeof parsed.output === "object"
         ? JSON.stringify(parsed.output)
         : parsed.output as string;

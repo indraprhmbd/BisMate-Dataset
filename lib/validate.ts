@@ -13,7 +13,7 @@ export interface DatasetRow {
   input: string;
   output: string | Record<string, unknown>;
   tipe?: string;
-  // Only for convertation CONV type
+  // Only for convertation/ BMC CONV type
   conversations?: ConversationTurn[];
 }
 
@@ -45,8 +45,8 @@ const BMC_REQUIRED_BLOCKS = [
 export function validateFields(taskType: string, obj: any): string | null {
   if (!obj || typeof obj !== "object" || Array.isArray(obj)) return "Row is not a valid JSON object";
 
-  // convertation CONV type: only needs system + conversations
-  if (taskType === "convertation" && obj.tipe === "CONV") {
+  // CONV types: only needs system + conversations
+  if (taskType !== "marketing" && taskType !== "regulasi" && obj.tipe === "CONV") {
     if (typeof obj.system !== "string" || obj.system.trim() === "") {
       return "Missing or invalid field: system";
     }
@@ -58,7 +58,7 @@ export function validateFields(taskType: string, obj: any): string | null {
 
   const required = ["system", "instruction", "input", "output"];
   for (const field of required) {
-    if (field === "output" && (taskType === "bmc" || taskType === "convertation")) {
+    if (field === "output" && taskType !== "marketing" && taskType !== "regulasi") {
       // BMC/convertation JSON output can be an object
       if (obj[field] === undefined || obj[field] === null) {
         return "Missing or invalid field: output";
@@ -72,7 +72,7 @@ export function validateFields(taskType: string, obj: any): string | null {
       return `Missing or invalid field: ${field}`;
     }
     if (obj[field].trim() === "") {
-      return `Field cannot be empty: ${field}`;
+      return "Field cannot be empty: " + field;
     }
   }
   return null;
@@ -96,14 +96,30 @@ export function validateTaskRules(taskType: TaskType, obj: DatasetRow): string |
       if (typeof obj.output !== "object" || Array.isArray(obj.output)) {
         return 'BMC JSON type: field "output" must be a JSON object';
       }
+      if (typeof (obj.output as any).nama_bisnis !== "string" || (obj.output as any).nama_bisnis.trim() === "") {
+        return 'BMC JSON type: output missing required field "nama_bisnis"';
+      }
       for (const block of BMC_REQUIRED_BLOCKS) {
         if (!Array.isArray((obj.output as any)[block])) {
           return `BMC JSON type: output missing required block "${block}"`;
         }
       }
     } else if (tipe === "CONV") {
-      if (typeof obj.output !== "string" || obj.output.trim() === "") {
-        return 'BMC CONV type: field "output" must be a non-empty string';
+      const convs = obj.conversations;
+      if (!Array.isArray(convs) || convs.length < 5) {
+        return 'BMC CONV type: "conversations" must have at least 5 turns';
+      }
+      for (let i = 0; i < convs.length; i++) {
+        const turn = convs[i];
+        if (!turn || typeof turn.role !== "string" || typeof turn.content !== "string") {
+          return `BMC CONV type: conversation turn ${i + 1} must have "role" and "content"`;
+        }
+        if (turn.role !== "user" && turn.role !== "assistant") {
+          return `BMC CONV type: turn ${i + 1} role must be "user" or "assistant"`;
+        }
+        if (turn.content.trim() === "") {
+          return `BMC CONV type: turn ${i + 1} content cannot be empty`;
+        }
       }
     }
   } else if (taskType === "convertation") {
@@ -148,6 +164,27 @@ export function generateHash(instruction: string, input: string): string {
   return crypto.createHash("sha256").update(instruction + input).digest("hex");
 }
 
+/**
+ * Try to parse input as JSON array, with tolerance for trailing commas.
+ * ChatGPT often outputs `[ {...}, {...}, ]` which is invalid JSON.
+ */
+function tryParseJsonArray(text: string): any[] | null {
+  try {
+    const result = JSON.parse(text);
+    return Array.isArray(result) ? result : null;
+  } catch {
+    // Try fixing trailing comma inside array: ], } or ],  ]
+    const fixed = text
+      .replace(/,\s*([\]}])/g, "$1");
+    try {
+      const result = JSON.parse(fixed);
+      return Array.isArray(result) ? result : null;
+    } catch {
+      return null;
+    }
+  }
+}
+
 export function validateBatch(taskType: string, rawText: string): ValidationResult {
   if (!rawText.trim()) {
     return { valid: false, lines: [] };
@@ -155,15 +192,32 @@ export function validateBatch(taskType: string, rawText: string): ValidationResu
 
   let lines: string[] = [];
 
-  try {
-    const parsedObj = JSON.parse(rawText);
-    if (Array.isArray(parsedObj)) {
-      lines = parsedObj.map(obj => JSON.stringify(obj));
-    } else {
-      throw new Error("Not an array");
+  // Try to parse as JSON array first (with trailing comma tolerance)
+  const parsedArray = tryParseJsonArray(rawText);
+  if (parsedArray) {
+    lines = parsedArray.map(obj => JSON.stringify(obj));
+  } else {
+    // Fallback: split by newlines and try to extract JSON objects
+    const rawLines = rawText.split("\n");
+    // If raw lines don't have balanced braces per line, try to merge consecutive lines into valid JSON objects
+    let buffer = "";
+    const mergedLines: string[] = [];
+    for (const rawLine of rawLines) {
+      const trimmed = rawLine.trim();
+      if (!trimmed) continue;
+
+      buffer = buffer ? buffer + "\n" + trimmed : trimmed;
+      const opens = (buffer.match(/{/g) || []).length;
+      const closes = (buffer.match(/}/g) || []).length;
+      if (opens > 0 && opens === closes) {
+        mergedLines.push(buffer);
+        buffer = "";
+      }
     }
-  } catch (e) {
-    lines = rawText.split("\n");
+    if (buffer) {
+      mergedLines.push(buffer);
+    }
+    lines = mergedLines.length > 0 ? mergedLines : rawLines;
   }
 
   const lineResults: LineValidation[] = [];
@@ -180,8 +234,14 @@ export function validateBatch(taskType: string, rawText: string): ValidationResu
     try {
       parsed = JSON.parse(originalText);
     } catch (e) {
-      isValid = false;
-      error = "Invalid JSON format";
+      // Try fixing trailing comma
+      const fixed = originalText.replace(/,\s*([\]}])/g, "$1");
+      try {
+        parsed = JSON.parse(fixed);
+      } catch {
+        isValid = false;
+        error = "Invalid JSON format";
+      }
     }
 
     if (isValid) {
