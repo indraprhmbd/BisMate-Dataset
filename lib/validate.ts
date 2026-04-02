@@ -13,7 +13,7 @@ export interface DatasetRow {
   input: string;
   output: string | Record<string, unknown>;
   tipe?: string;
-  // Only for convertation/ BMC CONV type
+  // Only for convertation CONV type
   conversations?: ConversationTurn[];
 }
 
@@ -45,8 +45,8 @@ const BMC_REQUIRED_BLOCKS = [
 export function validateFields(taskType: string, obj: any): string | null {
   if (!obj || typeof obj !== "object" || Array.isArray(obj)) return "Row is not a valid JSON object";
 
-  // CONV types: only needs system + conversations
-  if (taskType !== "marketing" && taskType !== "regulasi" && obj.tipe === "CONV") {
+  // Convertation CONV type: only needs system + conversations
+  if (taskType === "convertation" && obj.tipe === "CONV") {
     if (typeof obj.system !== "string" || obj.system.trim() === "") {
       return "Missing or invalid field: system";
     }
@@ -58,7 +58,7 @@ export function validateFields(taskType: string, obj: any): string | null {
 
   const required = ["system", "instruction", "input", "output"];
   for (const field of required) {
-    if (field === "output" && taskType !== "marketing" && taskType !== "regulasi") {
+    if (field === "output" && taskType === "bmc") {
       // BMC/convertation JSON output can be an object
       if (obj[field] === undefined || obj[field] === null) {
         return "Missing or invalid field: output";
@@ -89,69 +89,39 @@ export function validateTaskRules(taskType: TaskType, obj: DatasetRow): string |
     }
   } else if (taskType === "bmc") {
     const tipe = obj.tipe;
-    if (!tipe || (tipe !== "CONV" && tipe !== "JSON")) {
-      return 'BMC row must have field "tipe" with value "CONV" or "JSON"';
+    if (tipe !== "JSON") {
+      return 'BMC row must have field "tipe" with value "JSON"';
     }
-    if (tipe === "JSON") {
-      if (typeof obj.output !== "object" || Array.isArray(obj.output)) {
-        return 'BMC JSON type: field "output" must be a JSON object';
-      }
-      if (typeof (obj.output as any).nama_bisnis !== "string" || (obj.output as any).nama_bisnis.trim() === "") {
-        return 'BMC JSON type: output missing required field "nama_bisnis"';
-      }
-      for (const block of BMC_REQUIRED_BLOCKS) {
-        if (!Array.isArray((obj.output as any)[block])) {
-          return `BMC JSON type: output missing required block "${block}"`;
-        }
-      }
-    } else if (tipe === "CONV") {
-      const convs = obj.conversations;
-      if (!Array.isArray(convs) || convs.length < 5) {
-        return 'BMC CONV type: "conversations" must have at least 5 turns';
-      }
-      for (let i = 0; i < convs.length; i++) {
-        const turn = convs[i];
-        if (!turn || typeof turn.role !== "string" || typeof turn.content !== "string") {
-          return `BMC CONV type: conversation turn ${i + 1} must have "role" and "content"`;
-        }
-        if (turn.role !== "user" && turn.role !== "assistant") {
-          return `BMC CONV type: turn ${i + 1} role must be "user" or "assistant"`;
-        }
-        if (turn.content.trim() === "") {
-          return `BMC CONV type: turn ${i + 1} content cannot be empty`;
-        }
+    if (typeof obj.output !== "object" || Array.isArray(obj.output)) {
+      return 'BMC JSON type: field "output" must be a JSON object';
+    }
+    if (typeof (obj.output as any).nama_bisnis !== "string" || (obj.output as any).nama_bisnis.trim() === "") {
+      return 'BMC JSON type: output missing required field "nama_bisnis"';
+    }
+    for (const block of BMC_REQUIRED_BLOCKS) {
+      if (!Array.isArray((obj.output as any)[block])) {
+        return `BMC JSON type: output missing required block "${block}"`;
       }
     }
   } else if (taskType === "convertation") {
     const tipe = obj.tipe;
-    if (!tipe || (tipe !== "CONV" && tipe !== "JSON")) {
-      return 'Convertation row must have field "tipe" with value "CONV" or "JSON"';
+    if (tipe !== "CONV") {
+      return 'Convertation row must have field "tipe" with value "CONV"';
     }
-    if (tipe === "CONV") {
-      const convs = obj.conversations;
-      if (!Array.isArray(convs) || convs.length < 5) {
-        return 'Convertation CONV type: "conversations" must have at least 5 turns';
+    const convs = obj.conversations;
+    if (!Array.isArray(convs) || convs.length < 5) {
+      return 'Convertation CONV type: "conversations" must have at least 5 turns';
+    }
+    for (let i = 0; i < convs.length; i++) {
+      const turn = convs[i];
+      if (!turn || typeof turn.role !== "string" || typeof turn.content !== "string") {
+        return `Convertation CONV type: conversation turn ${i + 1} must have "role" and "content"`;
       }
-      for (let i = 0; i < convs.length; i++) {
-        const turn = convs[i];
-        if (!turn || typeof turn.role !== "string" || typeof turn.content !== "string") {
-          return `Convertation CONV type: conversation turn ${i + 1} must have "role" and "content"`;
-        }
-        if (turn.role !== "user" && turn.role !== "assistant") {
-          return `Convertation CONV type: turn ${i + 1} role must be "user" or "assistant"`;
-        }
-        if (turn.content.trim() === "") {
-          return `Convertation CONV type: turn ${i + 1} content cannot be empty`;
-        }
+      if (turn.role !== "user" && turn.role !== "assistant") {
+        return `Convertation CONV type: turn ${i + 1} role must be "user" or "assistant"`;
       }
-    } else if (tipe === "JSON") {
-      if (typeof obj.output !== "object" || Array.isArray(obj.output)) {
-        return 'Convertation JSON type: field "output" must be a JSON object';
-      }
-      for (const block of BMC_REQUIRED_BLOCKS) {
-        if (!Array.isArray((obj.output as any)[block])) {
-          return `Convertation JSON type: output missing required block "${block}"`;
-        }
+      if (turn.content.trim() === "") {
+        return `Convertation CONV type: turn ${i + 1} content cannot be empty`;
       }
     }
   } else {
