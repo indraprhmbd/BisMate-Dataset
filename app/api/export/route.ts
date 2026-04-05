@@ -23,7 +23,28 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    const jsonlLines = datasets.map(row => JSON.stringify(row)).join("\n");
+    const jsonlLines = datasets.map(row => {
+      if (task_type === "bmc") {
+        let parsedOutput: any = row.output;
+        try { parsedOutput = JSON.parse(row.output); } catch {}
+        return JSON.stringify({
+          tipe: "JSON",
+          system: row.system,
+          instruction: row.instruction,
+          input: row.input,
+          output: parsedOutput
+        });
+      } else if (task_type === "convertation") {
+        let conversations: any = row.output;
+        try { conversations = JSON.parse(row.output); } catch {}
+        return JSON.stringify({
+          tipe: "CONV",
+          system: row.system,
+          conversations
+        });
+      }
+      return JSON.stringify(row);
+    }).join("\n");
 
     return new Response(jsonlLines + (jsonlLines ? "\n" : ""), {
       status: 200,
